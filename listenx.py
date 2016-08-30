@@ -43,9 +43,15 @@ soundOption     = False
 printOption     = False
 notMeasuredCode = 127
 numNodes        = 10
-numChs          = 4
+numChs          = 8    # Changed with new Xandem kits from 4 to 8
 beepRate        = 1.0  # Beeps per second
 startSkip       = 24
+channelCol      = 2
+rxidCol         = 4
+timeCol         = -1  # last column
+# First column containing RSS values.  Changed with new Xandem kits from 11 to 7.
+firstRSSValueCol = 7
+
 
 # Get the file name and any other options from the command line
 file_method = "stdin"
@@ -75,7 +81,7 @@ for i in range(startSkip):
 
 # Use the first line to determine the starting time
 lineStrings     = line.split(', ')
-time_start      = float(lineStrings[-1])
+time_start      = float(lineStrings[timeCol])
 
 # Run forever, adding lines from input as they are available.
 lineCounter     = 0
@@ -83,9 +89,9 @@ beepCounter     = 0
 currentLinkRSS  = [127] * numLinks
 while 1:
     #  RSS is in columns 11 through 20
-    rss_now          = [int(x) for x in lineStrings[11:21]]
-    ch_now           = int(lineStrings[6])
-    rxid_now         = int(lineStrings[7])
+    rss_now          = [int(x) for x in lineStrings[firstRSSValueCol:(firstRSSValueCol+numNodes)]]
+    ch_now           = int(lineStrings[channelCol])
+    rxid_now         = int(lineStrings[rxidCol])
     time_now         = float(lineStrings[-1])
     time_diff        = time_now - time_start
     time_diff_ms     = int(1000.0*time_diff)
