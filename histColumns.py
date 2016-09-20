@@ -28,6 +28,8 @@
 #     - change number of channels or number of nodes via command line;
 #     - generally to use the getopt, ast packages for command line inputs;
 #     - allow up to eight channels.
+#
+# Version 2.1: 19 Sept 2016: Update to allow a single link to be plotted.
 #    
 #
 # Usage:
@@ -82,7 +84,7 @@ nodeList = range(1,numNodes+1)
 channelList = range(numChs)
 for l in linkCombosToPlot:
     linkNumList.append( rss.linkNumForTxRxChLists(l[0], l[1], l[2], nodeList, channelList) )
-
+links = len(linkNumList)
 
 # Inputs / Settings
 startSkip   = 0
@@ -112,33 +114,43 @@ for i, file in enumerate(fileList):
     # Remove 127 values from, and plot a histogram, for each column
     good_data  = [ data[data[:,k] < 127, k] for k in linkNumList]
     
+    # Print error message if a link has NO good data
+    for j in range(links):
+       if good_data[j] == []: 
+           sys.exit("Error: Link " + str(linkCombosToPlot[j]) + " in file " + file + " has no non-127 values.")
+    
     # Update the min and max
     maxrss = max(maxrss, max([gd.max() for gd in good_data]))
     minrss = min(minrss, min([gd.min() for gd in good_data]))
     
     # I don't want the histogram "bars", just the count.
     # So I'm calling hist() for a plot I don't want to look at.
-    axjunk     = junk.add_subplot(files, 1, i)
-    axfig      = fig.add_subplot(files, 1, i)
+    axjunk     = junk.add_subplot(files, 1, i+1)
+    axfig      = fig.add_subplot(files, 1, i+1)
     n, bins, patches = axjunk.hist(good_data, histtype='bar', bins=xbinedges)
-    #print n
     
     # Plot the probability mass function for each channel's
     # (good) data, normalized so the pmf sums to one.
-    for j, count in enumerate(n):
-        # This commented line caused errors in past versions of matplotlib
-        # because "count" was integers and so integer division would give zero.
-        # axfig.plot(xbincenters, count/sum(count), markerlist[j])
-        total = float(count.sum())
-        axfig.plot(xbincenters, count/total, markerlist[j])
+    if links>1:
+        for j, count in enumerate(n):
+            # This commented line caused errors in past versions of matplotlib
+            # because "count" was integers and so integer division would give zero.
+            # axfig.plot(xbincenters, count/sum(count), markerlist[j])
+            total = float(count.sum())
+            axfig.plot(xbincenters, count/total, markerlist[j])
+    # if one link, the n variable is only a single list, not a list of lists,
+    # so you can't use enumerate(n) and get the same result.
+    else:
+        total = float(n.sum())
+        axfig.plot(xbincenters, n/total, markerlist[0])        
 
 # Additional formatting done on each subplot
 for i in range(files):
-    ax = plt.subplot(files, 1, i)
+    ax = plt.subplot(files, 1, i+1)
     ax.set_xlim([minrss-1, maxrss+1])
     ax.set_ylabel('Probability Mass')
     ax.grid()
-ax = plt.subplot(files, 1, 0)
+ax = plt.subplot(files, 1, 1)
 ax.set_xlabel('RSS Value (dBm)')
 
 # Wait for user to hit enter so that the plot doesn't disappear immediately
