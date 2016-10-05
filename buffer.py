@@ -25,8 +25,13 @@
 #
 
 # ########################################
-# Code to provide a fixed-length buffer data type
-class MaxLenBuffer:
+# Code to provide a fixed-length FIFO buffer data type
+# This one allows multiple operations such as append or empty, 
+#    but the buffer has a fixed length and never needs to add or delete memory
+#    to the buffer.  Instead, appending to the buffer when the buffer is full
+#    simply deletes the oldest item in the buffer.
+
+class FixedMemoryBuffer:
     
     # frontInd is the index of the most recently appended value.
     # backInd is the index of the oldest value.
@@ -71,6 +76,20 @@ class MaxLenBuffer:
         # so increment backInd  
         elif self.frontInd == self.backInd:
             self.backInd = (self.backInd + 1) % self.len
+            
+    # Return TRUE if there are maxlen items currently in the list 
+    def isFull(self):
+        return self.backInd == ((self.frontInd + 1) % self.len)
+
+    # If backInd == (frontInd+1 mod len) then the append also deletes the oldest item.
+    # In that case also increment backInd.
+    # Whenever incrementing, check for wrap-around.
+    def pop(self):
+        if self.backInd == self.frontInd:  # there is zero or one item in the list
+            self.empty()
+        else:  # there are 2 or more, up to len, items in the list
+            self.backInd = (self.backInd + 1) % self.len
+    
 
     # Clear an existing buffer (without reallocating memory for the data list) 
     def empty(self):
