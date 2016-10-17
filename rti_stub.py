@@ -284,6 +284,10 @@ while keepReading:
                 VRTI_err_list.append(VRTI_err)
                 RTI_err   = np.sqrt(np.sum((actualCoord-RTIMaxCoord)**2))
                 RTI_err_list.append(RTI_err)
+
+        # Pause to allow the GUI framework to redraw the screen (required for certain backends)
+        # http://stackoverflow.com/a/12826273/2898712
+        plt.pause(0.0001)
             
     # Save RSS in case next line has missing data.
     prevRSS = rss.copy()
