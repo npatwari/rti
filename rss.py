@@ -130,6 +130,7 @@ def serialFileName():
 def beeping(time_diff, beepRate, beepCounter, printOption):
     
     curBeepNumber = int(time_diff/beepRate)
+
     if (curBeepNumber > beepCounter):
         beepCounter = curBeepNumber
         sys.stderr.write('\a')  # BEEP!

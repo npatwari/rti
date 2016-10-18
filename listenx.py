@@ -39,7 +39,7 @@ import getopt
 
 
 # If you want beeps and/or second printing, set to True
-soundOption     = False
+soundOption     = True
 printOption     = False
 notMeasuredCode = 127
 numNodes        = 10
@@ -81,7 +81,7 @@ for i in range(startSkip):
 
 # Use the first line to determine the starting time
 lineStrings     = line.split(', ')
-time_start      = float(lineStrings[timeCol])
+time_start      = float(lineStrings[timeCol])  # time in ms
 
 # Run forever, adding lines from input as they are available.
 lineCounter     = 0
@@ -93,7 +93,7 @@ while 1:
     ch_now           = int(lineStrings[channelCol])
     rxid_now         = int(lineStrings[rxidCol])
     time_now         = float(lineStrings[-1])
-    time_diff        = time_now - time_start
+    time_diff        = time_now - time_start   # time difference in sec
     time_diff_ms     = int(1000.0*time_diff)
     if printOption:
         print "rss_now: " + str(rss_now)
