@@ -95,14 +95,14 @@ startSkip     = 1
 buffL         = 4  
 calLines      = 50
 topChs        = 3  # How many channels to include in multichannel RTI
-channels      = 4  # How many channels are measured on each TX,RX combination.
+channels      = 8  # How many channels are measured on each TX,RX combination.
 delta_p       = 0.2  # distance units from coordFileName
 sigmax2       = 0.5  # image value^2
 delta         = 1.0  # distance units from coordFileName
 excessPathLen = 0.1 # distance units from coordFileName
 units         = 'm' # distance units for plot label
-actualKnown   = False
-outputFileName= "NealPatwari14.txt"
+actualKnown   = True
+outputFileName= "basement/neals_estimate.txt"
 
 # An image max value above this makes us believe someone is in the area.
 personInAreaThreshold = 2.1
@@ -111,20 +111,20 @@ personInAreaThreshold = 2.1
 # which are the only places the person may turn during their travel
 # Pivot spots are numbered (starting from 0)
 if actualKnown:
-    pivotFileName = 'Exam2_9_pivot_coords.txt'
+    pivotFileName = 'basement/pivot_coords_basement_m.txt'
     pivotCoords   = np.loadtxt(pivotFileName)
 
     # The "path" is just a list of the number of the pivot spots, in order
     # that the person traverses them.  The person is assumed to 
     # hit pivot spots at a constant rate.
-    pathFileName  = 'Exam2_9_path.txt'  # list of pivot numbers in order.
+    pathFileName  = 'basement/path_basement_1_f.txt'  # list of pivot numbers in order.
     pathInd       = np.loadtxt(pathFileName)
 
-    startPathTime = 28000.0 *(60.0/70.0)  # ms
-    speed         = 1.0 / (2000*60.0/70.0) # pivot points per millisecond.
+    startPathTime = 56000.0  # ms.  I know I started at time 14*4
+    speed         = 1.0 / 8000.0 # pivot points per millisecond.
 
 # Load the coordinate file, find the bottom left and top right
-coordFileName = 'tenNodeSquare.txt'  
+coordFileName = 'basement/sensor_coords_basement_m.txt'  
 sensorCoords  = np.loadtxt(coordFileName)
 sensors       = len(sensorCoords)
 
@@ -134,12 +134,12 @@ fout          = open(outputFileName, "w")
 # It looks nice to have the sensor coordinates plotted on top of any image.
 plt.ion()
 
-# initialize the RTI projection matrix, create a grid.
+# initialize the RTI projection matrix, create a rectangular grid of pixels.
 inversion, xVals, yVals = rti.initRTI(sensorCoords, delta_p, sigmax2, delta, excessPathLen)
 imageExtent   = (min(xVals) - delta_p/2, max(xVals) + delta_p/2, 
-                 min(yVals) - delta_p/2, max(yVals) + delta_p/2)
-xValsLen      = len(xVals)
-yValsLen      = len(yVals)
+                 min(yVals) - delta_p/2, max(yVals) + delta_p/2)  # the min, max for plot axes
+xValsLen      = len(xVals)  # how many pixels along the x-axis.
+yValsLen      = len(yVals)  # how many pixels along the y-axis.
 
 # Open the file in argv[1]; if none, use stdin as the file
 if len(sys.argv) == 1:
@@ -156,8 +156,9 @@ for i in range(startSkip):
     line = infile.readline()
 
 # Use the most recent line to determine how many columns (streams) there are.
+# The first line is used as the "prevRSS" when reading the following lines.
 lineList = [int(i) for i in line.split()]
-time_ms  = lineList.pop()
+time_ms  = lineList.pop()  # takes time in ms from the last column.
 prevRSS  = np.array(lineList)
 numLinks = len(prevRSS)
 numPairs = sensors*(sensors-1)
@@ -273,6 +274,8 @@ while keepReading:
         # print "VRTI Image range:" + str(image.min()) + " - " + str(image.max())
         if counter % plotSkip == 0:
             rti.plotImage(image, 3, sensorCoords, imageExtent, 16.0, units, time_ms, actualCoord)
+            plt.pause(0.001)
+        
         # You must call colorbar() only once, otherwise you get multiple bars.
         if counter==calLines:
             plt.colorbar()
