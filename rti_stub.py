@@ -273,7 +273,10 @@ while keepReading:
         VRTIMaxCoord = rti.imageMaxCoord(image, xVals, yVals)
         # print "VRTI Image range:" + str(image.min()) + " - " + str(image.max())
         if counter % plotSkip == 0:
-            rti.plotImage(image, 3, sensorCoords, imageExtent, 16.0, units, time_ms, actualCoord)
+            if actualKnown:
+                rti.plotImage(image, 3, sensorCoords, imageExtent, 16.0, units, time_ms, actualCoord)
+            else:
+                rti.plotImage(image, 3, sensorCoords, imageExtent, 16.0, units, time_ms)
             plt.pause(0.001)
         
         # You must call colorbar() only once, otherwise you get multiple bars.
